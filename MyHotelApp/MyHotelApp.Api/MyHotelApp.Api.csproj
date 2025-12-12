@@ -10,4 +10,10 @@
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.7"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\MyHotelApp.Core\MyHotelApp.Core.csproj" />
+      <ProjectReference Include="..\MyHotelApp.Infrastructure\MyHotelApp.Infrastructure.csproj" />
+      <ProjectReference Include="..\MyHotelApp.Shared\MyHotelApp.Shared.csproj" />
+    </ItemGroup>
+
 </Project>
