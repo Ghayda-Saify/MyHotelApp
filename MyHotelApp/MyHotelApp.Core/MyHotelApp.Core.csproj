@@ -7,4 +7,8 @@
         <RootNamespace>MyHotelApp.Domain</RootNamespace>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\MyHotelApp.Shared\MyHotelApp.Shared.csproj" />
+    </ItemGroup>
+
 </Project>
