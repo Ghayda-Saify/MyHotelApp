@@ -23,6 +23,19 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         {
             property.SetColumnType("decimal(18,2)");
         }
+        // If a Hotel is deleted, do NOT auto-delete Bookings.
+        modelBuilder.Entity<Booking>()
+            .HasOne(b => b.Hotel)
+            .WithMany(h => h.Bookings)
+            .HasForeignKey(b => b.HotelId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        // If a Room is deleted, do NOT auto-delete Bookings.
+        modelBuilder.Entity<Booking>()
+            .HasOne(b => b.Room)
+            .WithMany()
+            .HasForeignKey(b => b.RoomId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
     
     
