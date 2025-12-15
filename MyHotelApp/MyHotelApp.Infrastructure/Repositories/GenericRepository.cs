@@ -2,6 +2,7 @@
 using MyHotelApp.Domain.Entities;
 using MyHotelApp.Domain.Interfaces;
 using MyHotelApp.Infrastructure.Data;
+using System.Linq.Expressions;
 
 namespace MyHotelApp.Infrastructure.Repositories;
 /// <summary>
@@ -17,6 +18,13 @@ public class GenericRepository<T>(AppDbContext context) : IGenericRepository<T>
         return await context.Set<T>().ToListAsync();
     }
 
+    public async Task<IReadOnlyList<T>> GetAsync(Expression<Func<T, bool>> filter)
+    {
+        return await context.Set<T>()
+            .Where(filter)
+            .ToListAsync();
+    }
+    
     public async Task<T?> GetByIdAsync(Guid id)
     {
         return await context.Set<T>().FindAsync(id);
