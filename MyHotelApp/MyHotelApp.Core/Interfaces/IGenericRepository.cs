@@ -1,4 +1,5 @@
 ﻿using MyHotelApp.Domain.Entities;
+using System.Linq.Expressions;
 
 namespace MyHotelApp.Domain.Interfaces;
 /// <summary>
@@ -8,6 +9,7 @@ namespace MyHotelApp.Domain.Interfaces;
 public interface IGenericRepository<T> where T:BaseEntity
 {
     Task<IReadOnlyList<T>> GetAllAsync();
+    Task<IReadOnlyList<T>> GetAsync(Expression<Func<T, bool>> filter);
     Task<T?> GetByIdAsync(Guid id);
     Task AddAsync(T entity);
     Task UpdateAsync(T entity);
