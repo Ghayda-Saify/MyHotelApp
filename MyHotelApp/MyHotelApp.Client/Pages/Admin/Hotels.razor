@@ -1,0 +1,42 @@
+﻿@page "/admin/hotels"
+@using MyHotelApp.Shared.DTOs
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject HttpClient Http
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-8">
+    <MudText Typo="Typo.h4" GutterBottom="true">Hotel Management</MudText>
+
+    @if (hotels == null)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    }
+    else
+    {
+        <MudDataGrid T="HotelDto" Items="@hotels" Filterable="true" SortMode="SortMode.Multiple">
+            <Columns>
+                <PropertyColumn Property="x => x.Name" Title="Hotel Name" />
+                <PropertyColumn Property="x => x.Address" />
+                <PropertyColumn Property="x => x.StarRating" Title="Stars" />
+    
+                <PropertyColumn Property="x => x.IsFeatured" Title="Featured" />
+            </Columns>
+        </MudDataGrid>
+    }
+</MudContainer>
+
+@code {
+    private List<HotelDto>? hotels;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            hotels = await Http.GetFromJsonAsync<List<HotelDto>>("api/hotels");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading hotels: {ex.Message}");
+        }
+    }
+}
