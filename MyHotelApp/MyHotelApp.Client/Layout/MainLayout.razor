@@ -1,22 +1,33 @@
 ﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu/>
-    </div>
-
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
-
+@using MudBlazor
 
 <MudThemeProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 <MudPopoverProvider />
+
+<MudLayout>
+    @* 🌟 TOP APP BAR *@
+    <MudAppBar Elevation="1" Style="background: white;" Fixed="true">
+        @* Logo / Title *@
+        <MudText Typo="Typo.h5" Color="Color.Primary" Class="ml-3 fw-bold">MyHotelApp</MudText>
+        
+        <MudSpacer />
+        
+        @* Navigation Links *@
+        <MudButton Href="/" Variant="Variant.Text" Color="Color.Dark">Home</MudButton>
+        <MudButton Href="/admin/hotels" Variant="Variant.Text" Color="Color.Dark">Admin</MudButton>
+        <MudButton Href="/about" Variant="Variant.Text" Color="Color.Dark">About</MudButton>
+
+        @* Login/Register (Placeholder for now) *@
+        <MudIconButton Icon="@Icons.Material.Filled.Person" Color="Color.Default" Edge="Edge.End" Class="ml-2" />
+    </MudAppBar>
+
+    @* 📄 MAIN CONTENT *@
+    <MudMainContent Class="pt-16 px-4">
+        @* The Container limits width so it doesn't stretch too wide on huge screens *@
+        <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
