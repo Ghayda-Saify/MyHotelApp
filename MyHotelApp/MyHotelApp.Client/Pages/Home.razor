@@ -54,20 +54,7 @@ else
         @foreach (var hotel in featuredHotels)
         {
             <div class="col-md-4 mb-4">
-                <MudCard>
-                    @* Placeholder Image for now *@
-                    <MudCardMedia Image="https://placehold.co/600x400" Height="200" />
-                    <MudCardContent>
-                        <MudText Typo="Typo.h5">@hotel.Name</MudText>
-                        <MudText Typo="Typo.body2">@hotel.Address</MudText>
-                        <div class="mt-2">
-                            <MudRating ReadOnly="true" SelectedValue="@hotel.StarRating" />
-                        </div>
-                    </MudCardContent>
-                    <MudCardActions>
-                        <MudButton Variant="Variant.Text" Color="Color.Primary">View Details</MudButton>
-                    </MudCardActions>
-                </MudCard>
+                <HotelCard Hotel="hotel" />
             </div>
         }
     </div>
