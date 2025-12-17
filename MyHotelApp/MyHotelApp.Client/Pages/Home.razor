@@ -1,0 +1,106 @@
+﻿@page "/"
+@using MyHotelApp.Shared.DTOs
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+<PageTitle>Home - MyHotelApp</PageTitle>
+
+@* Hero Section with Search *@
+<div class="hero-section d-flex align-items-center justify-content-center mb-5" style="height: 400px; background-color: #f5f5f5; border-radius: 8px;">
+    <div class="text-center p-4 bg-white shadow rounded">
+        <h1 class="mb-4">Find Your Perfect Stay</h1>
+        
+        <div class="d-flex gap-2 align-items-center">
+            @* 🔍 Search Input *@
+            <MudTextField @bind-Value="searchQuery" 
+                          Label="Where are you going?" 
+                          Variant="Variant.Outlined" 
+                          Adornment="Adornment.Start" 
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          Class="flex-grow-1" />
+
+            @* 📅 Date Picker *@
+            <MudDateRangePicker @bind-DateRange="dateRange" 
+                                Label="Check-in - Check-out" 
+                                Variant="Variant.Outlined" 
+                                Class="flex-grow-1" />
+
+            @* 🚀 Search Button *@
+            <MudButton Variant="Variant.Filled" 
+                       Color="Color.Primary" 
+                       Size="Size.Large" 
+                       OnClick="SearchHotels"
+                       Style="height: 56px;">
+                Search
+            </MudButton>
+        </div>
+    </div>
+</div>
+
+@* Featured Deals Section *@
+<h3 class="mb-3">🔥 Featured Deals</h3>
+
+@if (featuredHotels == null)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else if (!featuredHotels.Any())
+{
+    <p>No featured deals right now.</p>
+}
+else
+{
+    <div class="row">
+        @foreach (var hotel in featuredHotels)
+        {
+            <div class="col-md-4 mb-4">
+                <MudCard>
+                    @* Placeholder Image for now *@
+                    <MudCardMedia Image="https://placehold.co/600x400" Height="200" />
+                    <MudCardContent>
+                        <MudText Typo="Typo.h5">@hotel.Name</MudText>
+                        <MudText Typo="Typo.body2">@hotel.Address</MudText>
+                        <div class="mt-2">
+                            <MudRating ReadOnly="true" SelectedValue="@hotel.StarRating" />
+                        </div>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Text" Color="Color.Primary">View Details</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private string searchQuery = "";
+    private DateRange dateRange = new DateRange(DateTime.Now, DateTime.Now.AddDays(1));
+    private List<HotelDTO>? featuredHotels;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Fetch all hotels and filter for 'IsFeatured' on the client side for now
+            var allHotels = await Http.GetFromJsonAsync<List<HotelDTO>>("api/Hotels");
+            if (allHotels != null)
+            {
+                featuredHotels = allHotels.Where(h => h.IsFeatured).ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching featured hotels: {ex.Message}");
+        }
+    }
+
+    private void SearchHotels()
+    {
+        // Navigate to the Admin Grid with the query (We can build a proper User Search page later)
+        if (!string.IsNullOrWhiteSpace(searchQuery))
+        {
+            Nav.NavigateTo($"/admin/hotels?q={searchQuery}");
+        }
+    }
+}
