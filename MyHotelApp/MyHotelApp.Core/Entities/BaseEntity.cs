@@ -9,4 +9,5 @@ public abstract class BaseEntity
     public Guid Id { get; set; } = Guid.NewGuid(); // Auto-generates a unique ID
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow; // Auto-sets the date
+    public DateTime? ModifiedAt { get; set; }
 }
