@@ -21,10 +21,32 @@ public class HotelsController(IGenericRepository<Hotel> hotelRepo) : ControllerB
             Name = h.Name,
             Address = h.Address,
             StarRating = h.StarRating,
-            IsFeatured = h.IsFeatured
+            IsFeatured = h.IsFeatured,
+            Description = h.Description,
+            ImageUrl = h.ImageUrl,
+            CityId = h.CityId
         }).ToList();
 
         return Ok(dtos);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<HotelDTO>> Create([FromBody] HotelDTO dto)
+    {
+        var hotel = new Hotel
+        {
+            Name = dto.Name,
+            Address = dto.Address,
+            StarRating = dto.StarRating,
+            IsFeatured = dto.IsFeatured,
+            Description = dto.Description,
+            ImageUrl = dto.ImageUrl,
+            CityId = dto.CityId
+        };
+        
+        await hotelRepo.AddAsync(hotel);
+        
+        return CreatedAtAction(nameof(GetAll), new { id = hotel.Id }, dto);
     }
     
     [HttpGet("search")]
@@ -39,4 +61,5 @@ public class HotelsController(IGenericRepository<Hotel> hotelRepo) : ControllerB
         // 3. Return
         return Ok(hotels);
     }
+    
 }

@@ -1,0 +1,97 @@
+@page "/admin/hotels/create"
+@using MyHotelApp.Shared.DTOs
+@using MudBlazor
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+<MudText Typo="Typo.h4" GutterBottom="true" Color="Color.Primary">Create New Hotel</MudText>
+
+<MudPaper Class="pa-4" Elevation="2">
+    <MudForm @ref="form" @bind-IsValid="@success">
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="hotel.Name" Label="Hotel Name" Required="true" RequiredError="Name is required!" Variant="Variant.Outlined"/>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="hotel.Address" Label="Address" Required="true" Variant="Variant.Outlined"/>
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="hotel.Description" Label="Description" Lines="3" Variant="Variant.Outlined"/>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                 <MudTextField @bind-Value="hotel.ImageUrl" Label="Image URL" HelperText="Paste an image link" Variant="Variant.Outlined"/>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="hotel.StarRating" Label="Star Rating (1-5)" Min="1" Max="5" Variant="Variant.Outlined" />
+            </MudItem>
+             <MudItem xs="12" sm="6">
+                <MudCheckBox @bind-Value="hotel.IsFeatured" Label="Featrueded Deal?" Color="Color.Primary"></MudCheckBox>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                 <MudSelect T="Guid" Label="City" @bind-Value="hotel.CityId" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter">
+                    @foreach (var city in cities)
+                    {
+                        <MudSelectItem Value="@city.Id">@city.Name, @city.Country</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+
+            <MudItem xs="12" Class="d-flex justify-end mt-4">
+                <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="Cancel" Class="mr-2">Cancel</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" OnClick="Submit">Create Hotel</MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudForm>
+</MudPaper>
+
+@code {
+    private HotelDTO hotel = new();
+    private List<CityDTO> cities = new();
+    private bool success;
+    private MudForm form;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCities();
+    }
+
+    private async Task LoadCities()
+    {
+        try
+        {
+            cities = await Http.GetFromJsonAsync<List<CityDTO>>("api/Cities") ?? new();
+             if (cities.Any())
+            {
+                hotel.CityId = cities.First().Id; // Default to first city
+            }
+        }
+        catch (Exception ex)
+        {
+             Console.WriteLine($"Error loading cities: {ex.Message}");
+        }
+    }
+
+    private async Task Submit()
+    {
+        await form.Validate();
+
+        if (success)
+        {
+            var response = await Http.PostAsJsonAsync("api/Hotels", hotel);
+            if (response.IsSuccessStatusCode)
+            {
+                Nav.NavigateTo("/admin/hotels");
+            }
+            else
+            {
+                // Handle error
+                Console.WriteLine("Error creating hotel");
+            }
+        }
+    }
+
+    private void Cancel()
+    {
+         Nav.NavigateTo("/admin/hotels");
+    }
+}
