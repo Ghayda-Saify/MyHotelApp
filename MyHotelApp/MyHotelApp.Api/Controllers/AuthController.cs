@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MyHotelApp.Domain.Interfaces;
 using MyHotelApp.Shared.DTOs;
+using LoginRequest = MyHotelApp.Shared.DTOs.LoginRequest;
 
 namespace MyHotelApp.Api.Controllers;
 [Route("api/[controller]")]

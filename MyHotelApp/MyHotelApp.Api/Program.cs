@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using MyHotelApp.Infrastructure.Data;
 using MyHotelApp.Domain.Interfaces;
 using MyHotelApp.Infrastructure.Repositories;
+using MyHotelApp.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,7 +26,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnectionString")));
 
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-
+builder.Services.AddScoped<IAuthService, AuthService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

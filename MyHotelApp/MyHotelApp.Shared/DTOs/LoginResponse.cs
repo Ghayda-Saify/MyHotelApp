@@ -12,4 +12,6 @@ public class LoginResponse
         
     // User's Role, useful for the UI so it hasn't had to ask the Api again
     public string UserRole { get; set; } = string.Empty;
+    public bool IsSuccess { get; set; }
+    public string Message { get; set; } = string.Empty;
 }

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using MyHotelApp.Domain.Entities;
+using MyHotelApp.Domain.Interfaces;
 using MyHotelApp.Infrastructure.Data;
 using MyHotelApp.Shared.DTOs;
 
@@ -15,7 +16,7 @@ namespace MyHotelApp.Infrastructure.Services;
 /// </summary>
 /// <param name="context"> To Connect with the DB and insure the identity of the User.</param>
 /// <param name="configuration"> To read secret values from appsettings.json.</param>
-public class AuthService(AppDbContext context, IConfiguration configuration)
+public class AuthService(AppDbContext context, IConfiguration configuration) : IAuthService
 {
     public async Task<LoginResponse?> LoginAsync(LoginRequest request)
         {
@@ -34,7 +35,9 @@ public class AuthService(AppDbContext context, IConfiguration configuration)
             {
                 Token = token,
                 UserRole = user.Role,
-                ExpiresIn = 3600 // == 1 hr
+                ExpiresIn = 3600, // == 1 hr
+                IsSuccess = true, 
+                Message = "Login successful"
             };
         }
 

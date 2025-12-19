@@ -6,12 +6,13 @@ public class Hotel : BaseEntity
     public string Description { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
     public string Owner { get; set; } = string.Empty;
-        
-    // 1->5 Stars.
     public int StarRating { get; set; } 
-
-    // For "Featured Deals" in Home Page.
     public bool IsFeatured { get; set; }
+    
+    //  Map Coordinates for the "Interactive Map"
+    public double Latitude { get; set; }
+    public double Longitude { get; set; }
+
     public string ImageUrl { get; set; } = string.Empty;
 
     // Links
@@ -20,4 +21,9 @@ public class Hotel : BaseEntity
 
     public List<Room> Rooms { get; set; } = [];
     public List<Booking> Bookings { get; set; } = [];
+
+    // Navigation Properties
+    public List<Review> Reviews { get; set; } = [];     // For "Guest Reviews"
+    public List<HotelImage> Gallery { get; set; } = []; // For "Visual Gallery"
+    public List<Amenity> Amenities { get; set; } = [];  // For "Search Filters"
 }
