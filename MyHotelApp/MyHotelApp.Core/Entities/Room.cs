@@ -18,4 +18,6 @@ public class Room : BaseEntity
 
     public Guid HotelId { get; set; }
     public Hotel Hotel { get; set; }
+    
+    public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 }

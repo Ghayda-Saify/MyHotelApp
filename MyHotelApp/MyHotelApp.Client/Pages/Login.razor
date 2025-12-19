@@ -115,7 +115,7 @@
             if (response.IsSuccess)
             {
                 Snackbar.Add("Login Successful!", Severity.Success);
-                Nav.NavigateTo(response.UserRole.Equals("Admin", StringComparison.OrdinalIgnoreCase) ? "/admin/hotels" : "/home");
+                Nav.NavigateTo(response.UserRole.Equals("Admin", StringComparison.OrdinalIgnoreCase) ? "/admin/hotels" : "/");
             }
             else
             {

@@ -36,6 +36,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .WithMany()
             .HasForeignKey(b => b.RoomId)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<Room>()
+            .HasMany(r => r.Bookings)    // A Room has many Bookings
+            .WithOne(b => b.Room)        // A Booking has one Room
+            .HasForeignKey(b => b.RoomId) // Use the EXISTING "RoomId" column
+            .OnDelete(DeleteBehavior.Cascade);
     }
     
     

@@ -50,7 +50,7 @@ else
 }
 
 @code {
-    private List<HotelDTO>? hotels;
+    private List<HotelDto>? hotels;
     private string searchText = ""; 
 
     protected override async Task OnInitializedAsync()
@@ -63,7 +63,7 @@ else
     {
         try 
         {
-            hotels = await Http.GetFromJsonAsync<List<HotelDTO>>("api/Hotels");
+            hotels = await Http.GetFromJsonAsync<List<HotelDto>>("api/Hotels");
         }
         catch (Exception ex)
         {
@@ -83,7 +83,7 @@ else
         try
         {
             // Connects to: GET /api/Hotels/search?query=...
-            hotels = await Http.GetFromJsonAsync<List<HotelDTO>>($"api/Hotels/search?query={searchText}");
+            hotels = await Http.GetFromJsonAsync<List<HotelDto>>($"api/Hotels/search?query={searchText}");
         }
         catch (Exception ex)
         {

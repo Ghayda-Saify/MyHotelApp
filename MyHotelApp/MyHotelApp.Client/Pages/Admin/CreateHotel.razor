@@ -45,8 +45,8 @@
 </MudPaper>
 
 @code {
-    private HotelDTO hotel = new();
-    private List<CityDTO> cities = new();
+    private HotelDto hotel = new();
+    private List<CityDto> cities = new();
     private bool success;
     private MudForm form;
 
@@ -59,7 +59,7 @@
     {
         try
         {
-            cities = await Http.GetFromJsonAsync<List<CityDTO>>("api/Cities") ?? new();
+            cities = await Http.GetFromJsonAsync<List<CityDto>>("api/Cities") ?? new();
              if (cities.Any())
             {
                 hotel.CityId = cities.First().Id; // Default to first city

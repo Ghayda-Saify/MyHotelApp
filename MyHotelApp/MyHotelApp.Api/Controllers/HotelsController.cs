@@ -10,12 +10,12 @@ namespace MyHotelApp.Api.Controllers;
 public class HotelsController(IGenericRepository<Hotel> hotelRepo) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<List<HotelDTO>>> GetAll()
+    public async Task<ActionResult<List<HotelDto>>> GetAll()
     {
         var hotels = await hotelRepo.GetAllAsync();
 
         // Convert Entity -> DTO manually (Simple & Fast)
-        var dtos = hotels.Select(h => new HotelDTO
+        var dtos = hotels.Select(h => new HotelDto
         {
             Id = h.Id,
             Name = h.Name,
@@ -31,7 +31,7 @@ public class HotelsController(IGenericRepository<Hotel> hotelRepo) : ControllerB
     }
 
     [HttpPost]
-    public async Task<ActionResult<HotelDTO>> Create([FromBody] HotelDTO dto)
+    public async Task<ActionResult<HotelDto>> Create([FromBody] HotelDto dto)
     {
         var hotel = new Hotel
         {
