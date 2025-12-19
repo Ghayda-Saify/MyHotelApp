@@ -1,13 +1,10 @@
 ﻿@page "/login"
-@using Microsoft.AspNetCore.Authorization
 @using MyHotelApp.Shared.DTOs
 @using MyHotelApp.Client.Services
 @using Microsoft.AspNetCore.Components.Authorization
 @inject IAuthService AuthService
-@inject NavigationManager Nav
 @inject ISnackbar Snackbar
 @inject AuthenticationStateProvider AuthStateProvider
-@attribute [AllowAnonymous]
 
 @* 1. Centering Container *@
 <MudContainer MaxWidth="MaxWidth.False" Class="d-flex align-center justify-center" Style="height: 100vh; background-color: #f5f5f5;">

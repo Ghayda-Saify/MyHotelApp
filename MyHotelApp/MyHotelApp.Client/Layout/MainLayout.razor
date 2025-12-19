@@ -1,12 +1,7 @@
 ﻿@inherits LayoutComponentBase
-@using MudBlazor
-@using Microsoft.AspNetCore.Components.Authorization
 @using MyHotelApp.Client.Services
-@inject NavigationManager Nav
 @inject AuthenticationStateProvider AuthStateProvider
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
-
-<CascadingAuthenticationState>
 
     <!-- MudBlazor Providers -->
     <MudThemeProvider />
@@ -20,11 +15,21 @@
             {
                 <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
             }
-            <MudText Typo="Typo.h5" Color="Color.Primary" Class="ml-3 fw-bold">MyHotelApp</MudText>
+            <MudLink Href="/" Underline="Underline.None">
+                <MudText Typo="Typo.h5" Color="Color.Primary" Class="ml-3 fw-bold">MyHotelApp</MudText>
+            </MudLink>
+            
             <MudSpacer />
             
             <AuthorizeView>
                 <Authorized Context="authContext">
+                    <div class="d-none d-md-flex mr-4">
+                        <MudButton Href="/" Variant="Variant.Text" Color="Color.Primary" Class="mx-1">Home</MudButton>
+                        <MudButton Href="/search" Variant="Variant.Text" Color="Color.Primary" Class="mx-1">Search</MudButton>
+                        <MudButton Href="/my-bookings" Variant="Variant.Text" Color="Color.Primary" Class="mx-1">My Bookings</MudButton>
+                        <MudButton Href="/checkout" Variant="Variant.Text" Color="Color.Primary" Class="mx-1">Checkout</MudButton>
+                    </div>
+
                     <MudText Typo="Typo.body2" Class="mr-3">Hello, @authContext.User.Identity?.Name</MudText>
                     <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="Logout">Logout</MudButton>
                 </Authorized>
@@ -47,8 +52,6 @@
             </MudContainer>
         </MudMainContent>
     </MudLayout>
-
-</CascadingAuthenticationState>
 
 @code {
     private bool _drawerOpen = true;

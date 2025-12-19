@@ -2,6 +2,9 @@
 @code {
     protected override void OnInitialized()
     {
-        Nav.NavigateTo("/login");
+        if (!Nav.Uri.ToLower().EndsWith("/login"))
+        {
+            Nav.NavigateTo("/login");
+        }
     }
 }
