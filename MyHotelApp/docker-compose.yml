@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=YourStrong@Passw0rd
+    ports:
+      - "1433:1433"
+
+  api:
+    build:
+      context: .
+      dockerfile: MyHotelApp.Api/Dockerfile
+    environment:
+      - ConnectionStrings__DefaultConnectionString=Server=db;Database=MyHotelApp;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True
+      - JwtSettings__SecretKey=ThisIsAVerySecretKeyForMyHotelApp2024!
+      - JwtSettings__Issuer=MyHotelApp
+      - JwtSettings__Audience=MyHotelApp
+    ports:
+      - "7048:8080" # Maps local 7048 to container 8080 (ASP.NET default)
+    depends_on:
+      - db
+
+  client:
+    build:
+      context: .
+      dockerfile: MyHotelApp.Client/Dockerfile
+    ports:
+      - "7047:80"
+    depends_on:
+      - api
