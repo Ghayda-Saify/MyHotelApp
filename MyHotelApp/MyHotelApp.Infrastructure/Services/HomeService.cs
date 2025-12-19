@@ -47,10 +47,11 @@ public class HomeService(AppDbContext context) : IHomeService
         }).ToList();
 
         // --- 2. Fetch Trending Destinations ---
-        // Requirement: Top 5 cities based on booking count [cite: 57]
+        // Requirements: Top 5 cities based on booking count [cite: 57]
         var trendingData = await context.Bookings
             .Include(b => b.Hotel)
             .ThenInclude(h => h.City)
+            .Where(b => b.Hotel != null && b.Hotel.City != null)
             .GroupBy(b => b.Hotel.CityId)
             .Select(g => new 
             { 
