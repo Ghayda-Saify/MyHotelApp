@@ -66,6 +66,7 @@ public class DbInitializer
                 .RuleFor(h => h.StarRating, f => f.Random.Int(1, 5))
                 .RuleFor(h => h.IsFeatured, f => f.Random.Bool(0.2f)) // 20% chance
                 .RuleFor(h => h.ImageUrl, f => $"https://loremflickr.com/800/600/hotel,luxury?lock={f.Random.Int(1001, 2000)}")
+                .RuleFor(h => h.PropertyType, f => f.PickRandom("Luxury", "Budget", "Boutique", "Business"))
                 .RuleFor(h => h.CityId, f => f.PickRandom(cities).Id);
 
             var hotels = hotelFaker.Generate(50);

@@ -8,6 +8,7 @@ public class Hotel : BaseEntity
     public string Owner { get; set; } = string.Empty;
     public int StarRating { get; set; } 
     public bool IsFeatured { get; set; }
+    public string? PropertyType { get; set; } // e.g., Luxury, Budget, Boutique, Business
     
     //  Map Coordinates for the "Interactive Map"
     public double Latitude { get; set; }

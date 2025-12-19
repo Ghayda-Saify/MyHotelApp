@@ -9,6 +9,7 @@ public class HotelDto
     public string ImageUrl { get; set; } = string.Empty;
     public int StarRating { get; set; }
     public bool IsFeatured { get; set; }
+    public string? PropertyType { get; set; }
 
     // --- Added Back for "Create Hotel" Form ---
     public string Address { get; set; } = string.Empty;

@@ -203,7 +203,7 @@ public class HotelsController(IGenericRepository<Hotel> hotelRepo, AppDbContext 
         // E. Property Type (New Requirement)
         if (request.PropertyTypes != null && request.PropertyTypes.Any())
         {
-            query = query.Where(h => request.PropertyTypes.Contains(h.Description)); // Mocking Type mapping via Description for now if no Type property exists
+            query = query.Where(h => request.PropertyTypes.Contains(h.PropertyType));
         }
 
         // F. Amenities (New Requirement)
@@ -262,6 +262,7 @@ public class HotelsController(IGenericRepository<Hotel> hotelRepo, AppDbContext 
                 StarRating = h.StarRating,
                 IsFeatured = h.IsFeatured,
                 Address = h.Address,
+                PropertyType = h.PropertyType,
                 
                 // New Fields needed for UI
                 CityName = h.City?.Name ?? "Unknown",
