@@ -2,7 +2,7 @@ name: Build and Test
 
 on:
   push:
-    branches: [ main ]
+    branches: [ develop ]
   pull_request:
     branches: [ main ]
 
@@ -10,32 +10,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    services:
-      sqlserver:
-        image: mcr.microsoft.com/mssql/server:2022-latest
-        env:
-          ACCEPT_EULA: Y
-          MSSQL_SA_PASSWORD: YourStrong@Passw0rd
-        ports:
-          - 1433:1433
-
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 9.0.x
+        dotnet-version: 8.0.x
 
     - name: Restore dependencies
       run: dotnet restore
 
-    - name: Build
+    - name: Build solution
       run: dotnet build --no-restore -c Release
 
-    - name: Test
+    - name: Run tests
       run: dotnet test --no-build -c Release --verbosity normal
-
-    # Example Docker Build Step (Optional)
-    # - name: Build Docker API
-    #   run: docker build -t myhotelapp-api -f MyHotelApp.Api/Dockerfile .
