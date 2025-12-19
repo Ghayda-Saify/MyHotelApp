@@ -1,6 +1,267 @@
-﻿namespace MyHotelApp.Client.Pages;
+﻿@page "/search"
+@using MyHotelApp.Shared.DTOs
+@using MyHotelApp.Shared.DTOs.Search
+@inject HttpClient Http
+@inject NavigationManager Nav
 
-public class Search_razor
-{
+<PageTitle>Find Your Stay</PageTitle>
+
+<div class="search-container">
+    <MudGrid>
+        @* --- 3.1 SIDEBAR FILTERS --- *@
+        <MudItem xs="12" md="3">
+            <div class="filter-sidebar elevation-1">
+                
+                @* Price Range *@
+                <div class="filter-section">
+                    <div class="filter-title">Price Per Night</div>
+                    <MudText Typo="Typo.body2" Class="mb-1">Max: $@_maxPriceFilter</MudText>
+                    <MudSlider @bind-Value="_maxPriceFilter" Min="50" Max="1000" Step="50" Color="Color.Primary" ValueLabel="true" />
+                </div>
+                
+                <MudDivider Class="my-4"/>
+
+                @* Star Rating *@
+                <div class="filter-section">
+                    <div class="filter-title">Star Rating</div>
+                    <MudRating @bind-SelectedValue="_starFilter" MaxValue="5" />
+                </div>
+
+                <MudDivider Class="my-4"/>
+
+                @* Hotel / Room Type (New Requirement) *@
+                <div class="filter-section">
+                    <div class="filter-title">Property Type</div>
+                    <MudCheckBox T="bool" Label="Luxury" Dense="true" Color="Color.Primary" Value="@(_selectedTypes.Contains("Luxury"))" ValueChanged="@((v) => ToggleFilter(_selectedTypes, "Luxury", v))" />
+                    <MudCheckBox T="bool" Label="Boutique" Dense="true" Color="Color.Primary" Value="@(_selectedTypes.Contains("Boutique"))" ValueChanged="@((v) => ToggleFilter(_selectedTypes, "Boutique", v))" />
+                    <MudCheckBox T="bool" Label="Budget" Dense="true" Color="Color.Primary" Value="@(_selectedTypes.Contains("Budget"))" ValueChanged="@((v) => ToggleFilter(_selectedTypes, "Budget", v))" />
+                    <MudCheckBox T="bool" Label="Business" Dense="true" Color="Color.Primary" Value="@(_selectedTypes.Contains("Business"))" ValueChanged="@((v) => ToggleFilter(_selectedTypes, "Business", v))" />
+                </div>
+
+                <MudDivider Class="my-4"/>
+
+                @* Amenities (New Requirement) *@
+                <div class="filter-section">
+                    <div class="filter-title">Amenities</div>
+                    <MudCheckBox T="bool" Label="Free WiFi" Dense="true" Color="Color.Secondary" Value="@(_selectedAmenities.Contains("Free WiFi"))" ValueChanged="@((v) => ToggleFilter(_selectedAmenities, "Free WiFi", v))" />
+                    <MudCheckBox T="bool" Label="Swimming Pool" Dense="true" Color="Color.Secondary" Value="@(_selectedAmenities.Contains("Swimming Pool"))" ValueChanged="@((v) => ToggleFilter(_selectedAmenities, "Swimming Pool", v))" />
+                    <MudCheckBox T="bool" Label="Spa & Wellness" Dense="true" Color="Color.Secondary" Value="@(_selectedAmenities.Contains("Spa & Wellness"))" ValueChanged="@((v) => ToggleFilter(_selectedAmenities, "Spa & Wellness", v))" />
+                    <MudCheckBox T="bool" Label="Parking" Dense="true" Color="Color.Secondary" Value="@(_selectedAmenities.Contains("Parking"))" ValueChanged="@((v) => ToggleFilter(_selectedAmenities, "Parking", v))" />
+                </div>
+
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="ApplyFilters" Class="mt-4">
+                    Apply Filters
+                </MudButton>
+            </div>
+        </MudItem>
+
+        @* --- 3.2 HOTEL LISTINGS (Infinite Scroll) --- *@
+        <MudItem xs="12" md="9">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <MudText Typo="Typo.h5" Class="fw-bold">
+                    @(_totalItems) properties found
+                </MudText>
+                <MudSelect T="string" Label="Sort by" Variant="Variant.Outlined" Dense="true" Style="width: 200px; background:white;">
+                    <MudSelectItem Value="@("PriceAsc")">Price: Low to High</MudSelectItem>
+                    <MudSelectItem Value="@("StarsDesc")">Stars: High to Low</MudSelectItem>
+                </MudSelect>
+            </div>
+
+            <div class="results-container">
+                @if (_loadedHotels.Any())
+                {
+                    @foreach (var hotel in _loadedHotels)
+                    {
+                        <div class="hotel-card">
+                            <div class="card-thumb-wrapper">
+                                <img src="@hotel.ImageUrl" class="card-thumb" alt="@hotel.Name" />
+                                @if (hotel.IsFeatured)
+                                {
+                                    <MudChip T="string" Color="Color.Warning" Size="Size.Small" Label="true" Style="position:absolute; top:10px; left:10px;">Featured</MudChip>
+                                }
+                            </div>
+                            
+                            <div class="card-body">
+                                <div>
+                                    <div class="card-header-row">
+                                        <div>
+                                            <div class="hotel-name">@hotel.Name</div>
+                                            <MudText Typo="Typo.caption" Class="text-muted">
+                                                <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" /> @hotel.CityName
+                                            </MudText>
+                                        </div>
+                                        <MudRating ReadOnly="true" SelectedValue="@hotel.StarRating" Size="Size.Small" />
+                                    </div>
+                                    
+                                    <div class="hotel-description">
+                                        @hotel.Description
+                                    </div>
+                                </div>
+
+                                <div class="card-footer-row">
+                                    <div>
+                                        <MudChip T="string" Variant="Variant.Text" Color="Color.Success" Size="Size.Small">Free Cancellation</MudChip>
+                                        <MudChip T="string" Variant="Variant.Text" Color="Color.Info" Size="Size.Small">Breakfast Included</MudChip>
+                                    </div>
+                                    
+                                    <div class="price-block">
+                                        <MudText Typo="Typo.caption" Class="d-block">1 night, 2 adults</MudText>
+                                        <div class="price-tag">$@hotel.PricePerNight.ToString("0")</div>
+                                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="() => GoToDetails(hotel.HotelId)">
+                                            View Availability
+                                        </MudButton>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else if (!_isLoading)
+                {
+                    <MudAlert Severity="Severity.Info">No hotels found. Try adjusting your filters.</MudAlert>
+                }
+            </div>
+
+            @* INFINITE SCROLL LOADER *@
+            <div class="load-more-container">
+                @if (_isLoading)
+                {
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                }
+                else if (_hasMoreResults)
+                {
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large" OnClick="LoadMore">
+                        Show More Results
+                    </MudButton>
+                }
+            </div>
+
+        </MudItem>
+    </MudGrid>
+</div>
+
+@code {
+    // --- State ---
+    private bool _isLoading = false;
+    private List<HotelDto> _loadedHotels = new();
+    private int _currentPage = 1;
+    private int _totalItems = 0;
+    private bool _hasMoreResults = true;
+
+    // --- Search Request ---
+    private HotelSearchRequestDto _searchRequest = new();
+
+    // --- UI Filters ---
+    private double _maxPriceFilter = 1000;
+    private int _starFilter = 0;
+    private List<string> _selectedTypes = new();
+    private List<string> _selectedAmenities = new();
     
+    // --- URL Parameters ---
+    [SupplyParameterFromQuery(Name = "q")] public string? UrlQuery { get; set; }
+    [SupplyParameterFromQuery(Name = "adults")] public int? UrlAdults { get; set; }
+    [SupplyParameterFromQuery(Name = "children")] public int? UrlChildren { get; set; }
+    [SupplyParameterFromQuery(Name = "checkIn")] public DateTime? UrlCheckIn { get; set; }
+    [SupplyParameterFromQuery(Name = "checkOut")] public DateTime? UrlCheckOut { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // 1. Initialize Request from URL
+        if (!string.IsNullOrEmpty(UrlQuery)) _searchRequest.Query = UrlQuery;
+        if (UrlAdults.HasValue) _searchRequest.Adults = UrlAdults.Value;
+        if (UrlChildren.HasValue) _searchRequest.Children = UrlChildren.Value;
+        if (UrlCheckIn.HasValue) _searchRequest.CheckInDate = UrlCheckIn.Value;
+        if (UrlCheckOut.HasValue) _searchRequest.CheckOutDate = UrlCheckOut.Value;
+
+        // 2. Initial Load
+        await LoadData(reset: true);
+    }
+
+    private async Task ApplyFilters()
+    {
+        _searchRequest.MaxPrice = (decimal)_maxPriceFilter;
+        _searchRequest.StarRating = _starFilter > 0 ? _starFilter : null;
+        _searchRequest.PropertyTypes = _selectedTypes;
+        _searchRequest.Amenities = _selectedAmenities;
+        await LoadData(reset: true);
+    }
+
+    private void ToggleFilter(List<string> list, string value, bool selected)
+    {
+        if (selected) { if (!list.Contains(value)) list.Add(value); }
+        else { list.Remove(value); }
+    }
+
+    private async Task LoadMore()
+    {
+        await LoadData(reset: false);
+    }
+
+    private async Task LoadData(bool reset)
+    {
+        _isLoading = true;
+        
+        if (reset)
+        {
+            _currentPage = 1;
+            _loadedHotels.Clear();
+        }
+        else
+        {
+            _currentPage++;
+        }
+
+        try
+        {
+            // Build Query
+            _searchRequest.Page = _currentPage;
+            
+            var query = new List<string>
+            {
+                $"Page={_searchRequest.Page}",
+                $"Adults={_searchRequest.Adults}",
+                $"Children={_searchRequest.Children}"
+            };
+            
+            if (!string.IsNullOrEmpty(_searchRequest.Query)) query.Add($"Query={_searchRequest.Query}");
+            if (_searchRequest.CheckInDate.HasValue) query.Add($"CheckInDate={_searchRequest.CheckInDate:yyyy-MM-dd}");
+            if (_searchRequest.CheckOutDate.HasValue) query.Add($"CheckOutDate={_searchRequest.CheckOutDate:yyyy-MM-dd}");
+            if (_searchRequest.MaxPrice.HasValue) query.Add($"MaxPrice={_searchRequest.MaxPrice}");
+            if (_searchRequest.StarRating.HasValue) query.Add($"StarRating={_searchRequest.StarRating}");
+            
+            if (_searchRequest.PropertyTypes != null) 
+                foreach(var pt in _searchRequest.PropertyTypes) query.Add($"PropertyTypes={pt}");
+            
+            if (_searchRequest.Amenities != null) 
+                foreach(var am in _searchRequest.Amenities) query.Add($"Amenities={am}");
+
+            var queryString = string.Join("&", query);
+            
+            // API Call
+            var result = await Http.GetFromJsonAsync<SearchResponseDto>($"api/Hotels/search?{queryString}");
+
+            if (result != null)
+            {
+                _totalItems = result.TotalCount;
+                _loadedHotels.AddRange(result.Items);
+                
+                // Check if we reached the end
+                _hasMoreResults = _loadedHotels.Count < _totalItems;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void GoToDetails(Guid hotelId)
+    {
+        Nav.NavigateTo($"/hotel/{hotelId}");
+    }
 }
