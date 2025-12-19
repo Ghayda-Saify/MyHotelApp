@@ -1,0 +1,122 @@
+@page "/admin/cities"
+@using MyHotelApp.Shared.DTOs
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin")]
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <MudText Typo="Typo.h4" Class="fw-bold">Cities Management</MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Href="/admin/cities/create">
+            Add New City
+        </MudButton>
+    </div>
+
+    @if (cities == null)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    }
+    else
+    {
+        <MudTable Items="@cities" Dense="true" Hover="true" Bordered="true" Striped="true" Filter="new Func<CityDto,bool>(FilterFunc)">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Cities List</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>Image</MudTh>
+                <MudTh>Name</MudTh>
+                <MudTh>Country</MudTh>
+                <MudTh>Post Office</MudTh>
+                <MudTh>Hotels</MudTh>
+                <MudTh>Created At</MudTh>
+                <MudTh>Modified At</MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Image">
+                    <MudImage Src="@context.ImageUrl" Width="50" Height="50" ObjectFit="ObjectFit.Cover" Class="rounded" />
+                </MudTd>
+                <MudTd DataLabel="Name">@context.Name</MudTd>
+                <MudTd DataLabel="Country">@context.Country</MudTd>
+                <MudTd DataLabel="Post Office">@context.PostOffice</MudTd>
+                <MudTd DataLabel="Hotels">@context.HotelsCount</MudTd>
+                <MudTd DataLabel="Created At">@context.CreatedAt.ToString("g")</MudTd>
+                <MudTd DataLabel="Modified At">@context.ModifiedAt?.ToString("g")</MudTd>
+                <MudTd DataLabel="Actions">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" OnClick="@(() => EditCity(context.Id))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => DeleteCity(context.Id))" />
+                </MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager />
+            </PagerContent>
+        </MudTable>
+    }
+</MudContainer>
+
+@code {
+    private List<CityDto>? cities;
+    private string searchString = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCities();
+    }
+
+    private async Task LoadCities()
+    {
+        try
+        {
+            cities = await Http.GetFromJsonAsync<List<CityDto>>("api/Cities");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading cities: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private bool FilterFunc(CityDto city)
+    {
+        if (string.IsNullOrWhiteSpace(searchString)) return true;
+        if (city.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase)) return true;
+        if (city.Country.Contains(searchString, StringComparison.OrdinalIgnoreCase)) return true;
+        return false;
+    }
+
+    private void EditCity(Guid id)
+    {
+        Nav.NavigateTo($"/admin/cities/edit/{id}");
+    }
+
+    private async Task DeleteCity(Guid id)
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            "Delete City", 
+            "Are you sure you want to delete this city? This action cannot be undone.", 
+            yesText:"Delete", cancelText:"Cancel");
+
+        if (result == true)
+        {
+            try
+            {
+                var response = await Http.DeleteAsync($"api/Cities/{id}");
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("City deleted successfully", Severity.Success);
+                    await LoadCities();
+                }
+                else
+                {
+                    Snackbar.Add("Failed to delete city", Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+}
