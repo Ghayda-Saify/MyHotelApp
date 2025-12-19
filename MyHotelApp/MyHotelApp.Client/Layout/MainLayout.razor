@@ -1,33 +1,74 @@
 ﻿@inherits LayoutComponentBase
 @using MudBlazor
+@using Microsoft.AspNetCore.Components.Authorization
+@using MyHotelApp.Client.Services
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider AuthStateProvider
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 
-<MudThemeProvider />
-<MudDialogProvider />
-<MudSnackbarProvider />
-<MudPopoverProvider />
+<CascadingAuthenticationState>
 
-<MudLayout>
-    @* 🌟 TOP APP BAR *@
-    <MudAppBar Elevation="1" Style="background: white;" Fixed="true">
-        @* Logo / Title *@
-        <MudText Typo="Typo.h5" Color="Color.Primary" Class="ml-3 fw-bold">MyHotelApp</MudText>
-        
-        <MudSpacer />
-        
-        @* Navigation Links *@
-        <MudButton Href="/" Variant="Variant.Text" Color="Color.Dark">Home</MudButton>
-        <MudButton Href="/admin/hotels" Variant="Variant.Text" Color="Color.Dark">Admin</MudButton>
-        <MudButton Href="/about" Variant="Variant.Text" Color="Color.Dark">About</MudButton>
+    <!-- MudBlazor Providers -->
+    <MudThemeProvider />
+    <MudDialogProvider />
+    <MudSnackbarProvider />
+    <MudPopoverProvider />
 
-        @* Login/Register (Placeholder for now) *@
-        <MudIconButton Icon="@Icons.Material.Filled.Person" Color="Color.Default" Edge="Edge.End" Class="ml-2" />
-    </MudAppBar>
+    <MudLayout>
+        <MudAppBar Elevation="1" Fixed="true" Style="background: white;">
+            @if (IsAdminPage)
+            {
+                <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+            }
+            <MudText Typo="Typo.h5" Color="Color.Primary" Class="ml-3 fw-bold">MyHotelApp</MudText>
+            <MudSpacer />
+            
+            <AuthorizeView>
+                <Authorized Context="authContext">
+                    <MudText Typo="Typo.body2" Class="mr-3">Hello, @authContext.User.Identity?.Name</MudText>
+                    <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="Logout">Logout</MudButton>
+                </Authorized>
+                <NotAuthorized>
+                    <MudButton Href="/login" Variant="Variant.Filled" Color="Color.Primary">Login</MudButton>
+                </NotAuthorized>
+            </AuthorizeView>
+        </MudAppBar>
 
-    @* 📄 MAIN CONTENT *@
-    <MudMainContent Class="pt-16 px-4">
-        @* The Container limits width so it doesn't stretch too wide on huge screens *@
-        <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
-            @Body
-        </MudContainer>
-    </MudMainContent>
-</MudLayout>
+        @if (IsAdminPage)
+        {
+            <MudDrawer @bind-Open="_drawerOpen" Elevation="2" ClipMode="DrawerClipMode.Always">
+                <NavMenu />
+            </MudDrawer>
+        }
+
+        <MudMainContent Class="pt-16">
+            <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+                @Body
+            </MudContainer>
+        </MudMainContent>
+    </MudLayout>
+
+</CascadingAuthenticationState>
+
+@code {
+    private bool _drawerOpen = true;
+
+    private bool IsAdminPage => Nav.Uri.ToLower().Contains("/admin");
+
+    protected override void OnInitialized()
+    {
+        Nav.LocationChanged += (s, e) => StateHasChanged();
+    }
+
+    private void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    private async Task Logout()
+    {
+        await LocalStorage.RemoveItemAsync("authToken");
+        ((CustomAuthenticationStateProvider)AuthStateProvider).NotifyUserLogout();
+        Nav.NavigateTo("/login", forceLoad: true);
+    }
+}

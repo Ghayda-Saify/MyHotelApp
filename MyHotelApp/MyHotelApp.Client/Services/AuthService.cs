@@ -20,7 +20,12 @@ public class AuthService(HttpClient httpClient, ILocalStorageService localStorag
         // 2. Check if it failed.
         if (!result.IsSuccessStatusCode)
         {
-            return new LoginResponse { Token = string.Empty, UserRole = string.Empty };
+            var errorContent = await result.Content.ReadFromJsonAsync<LoginResponse>();
+            return errorContent ?? new LoginResponse 
+            { 
+                IsSuccess = false, 
+                Message = "Invalid email or password" 
+            };
         }
 
         // 3. Read the Token.

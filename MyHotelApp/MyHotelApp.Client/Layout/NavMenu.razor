@@ -1,0 +1,17 @@
+@using MudBlazor
+
+<MudNavMenu>
+    <MudNavLink Href="/" Icon="@Icons.Material.Filled.Home" Match="NavLinkMatch.All">Home</MudNavLink>
+    
+    <AuthorizeView Roles="Admin">
+        <Authorized>
+            <MudNavGroup Title="Management" Icon="@Icons.Material.Filled.Settings" Expanded="true">
+                <MudNavLink Href="/admin/cities" Icon="@Icons.Material.Filled.LocationCity">Cities</MudNavLink>
+                <MudNavLink Href="/admin/hotels" Icon="@Icons.Material.Filled.Hotel">Hotels</MudNavLink>
+                <MudNavLink Href="/admin/rooms" Icon="@Icons.Material.Filled.MeetingRoom">Rooms</MudNavLink>
+            </MudNavGroup>
+        </Authorized>
+    </AuthorizeView>
+
+    <MudNavLink Href="/about" Icon="@Icons.Material.Filled.Info">About</MudNavLink>
+</MudNavMenu>
