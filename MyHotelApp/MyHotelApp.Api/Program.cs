@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using MyHotelApp.Infrastructure.Data;
 using MyHotelApp.Domain.Interfaces;
 using MyHotelApp.Infrastructure.Repositories;
@@ -20,13 +21,45 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 
 // builder.Services.AddOpenApi(); // 
-builder.Services.AddSwaggerGen(); //
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "My Hotel API", Version = "v1" });
+
+    // 1. Define the Security Scheme (Tell Swagger we use JWT)
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Please enter a valid token",
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        BearerFormat = "JWT",
+        Scheme = "Bearer"
+    });
+
+    // 2. Add the Security Requirement (Apply the scheme to endpoints)
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            []
+        }
+    });
+});
 
 builder.Services.AddDbContext<AppDbContext>(options => 
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnectionString")));
 
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IHomeService, HomeService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
