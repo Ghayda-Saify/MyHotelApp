@@ -1,0 +1,10 @@
+@inject NavigationManager Nav
+@code {
+    protected override void OnInitialized()
+    {
+        if (!Nav.Uri.ToLower().EndsWith("/login"))
+        {
+            Nav.NavigateTo("/login");
+        }
+    }
+}

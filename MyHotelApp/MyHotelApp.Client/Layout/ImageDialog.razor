@@ -1,0 +1,15 @@
+<MudDialog>
+    <DialogContent>
+        <MudImage Src="@ImageUrl" ObjectFit="ObjectFit.Contain" Style="width:100%; max-height: 80vh;" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="@Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public string ImageUrl { get; set; } = string.Empty;
+
+    private void Close() => MudDialog.Close();
+}

@@ -1,0 +1,100 @@
+﻿@page "/admin/hotels"
+@using MyHotelApp.Shared.DTOs
+@inject HttpClient Http
+
+<h3>Hotel Management</h3>
+
+<div class="row mb-3">
+    @* Button to Add New Hotel *@
+    <div class="col-md-4">
+        <a href="/admin/hotels/create" class="btn btn-primary">
+            + Add New Hotel
+        </a>
+    </div>
+
+    @* Search Bar *@
+    <div class="col-md-8">
+        <div class="input-group">
+            <input @bind="searchText" class="form-control" placeholder="Search by name or city..." />
+            <button class="btn btn-outline-secondary" @onclick="SearchHotels">Search</button>
+            <button class="btn btn-outline-danger" @onclick="ClearSearch">Clear</button>
+        </div>
+    </div>
+</div>
+
+@if (hotels == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Address</th>
+                <th>Rating</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var hotel in hotels)
+            {
+                <tr>
+                    <td>@hotel.Name</td>
+                    <td>@hotel.Address</td>
+                    <td>@hotel.StarRating</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<HotelDto>? hotels;
+    private string searchText = ""; 
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadHotels();
+    }
+
+    // Helper to load all hotels
+    private async Task LoadHotels()
+    {
+        try 
+        {
+            hotels = await Http.GetFromJsonAsync<List<HotelDto>>("api/Hotels");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+
+    // Calls your new Search Endpoint
+    private async Task SearchHotels()
+    {
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            await LoadHotels(); // If empty, load all
+            return;
+        }
+
+        try
+        {
+            // Connects to: GET /api/Hotels/search?query=...
+            hotels = await Http.GetFromJsonAsync<List<HotelDto>>($"api/Hotels/search?query={searchText}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Search Error: {ex.Message}");
+        }
+    }
+
+    // Resets the list
+    private async Task ClearSearch()
+    {
+        searchText = "";
+        await LoadHotels();
+    }
+}

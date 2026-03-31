@@ -1,0 +1,141 @@
+﻿@page "/login"
+@using MyHotelApp.Shared.DTOs
+@using MyHotelApp.Client.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IAuthService AuthService
+@inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthStateProvider
+
+@* 1. Centering Container *@
+<MudContainer MaxWidth="MaxWidth.False" Class="d-flex align-center justify-center" Style="height: 100vh; background-color: #f5f5f5;">
+    
+    <MudCard Elevation="25" Class="pa-4 rounded-lg" Style="width: 400px;">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h4" Align="Align.Center" Color="Color.Primary" Class="mb-2"><b>MyHotelApp</b></MudText>
+                <MudText Typo="Typo.h6" Align="Align.Center">Welcome Back</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+
+        <MudCardContent>
+            <MudForm @ref="_form" @bind-IsValid="_success">
+                
+                @* 2. Username / Email Input *@
+                <MudTextField T="string" 
+                              Label="Username or Email" 
+                              @bind-Value="_loginModel.Email"
+                              Variant="Variant.Outlined" 
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Person"
+                              Margin="Margin.Dense"
+                              Class="mb-4"
+                              Required="true"
+                              RequiredError="Username is required!"/>
+
+                @* 3. Password Input *@
+                <MudTextField T="string" 
+                              Label="Password" 
+                              @bind-Value="_loginModel.Password"
+                              Variant="Variant.Outlined"
+                              InputType="@_passwordInputType"
+                              Adornment="Adornment.End"
+                              AdornmentIcon="@_passwordInputIcon"
+                              OnAdornmentClick="TogglePasswordVisibility"
+                              Margin="Margin.Dense"
+                              Required="true"
+                              RequiredError="Password is required!"/>
+
+            </MudForm>
+        </MudCardContent>
+
+        <MudCardActions Class="d-flex justify-center pa-4">
+            <MudButton Variant="Variant.Filled" 
+                       Color="Color.Primary" 
+                       Size="Size.Large" 
+                       FullWidth="true" 
+                       OnClick="SubmitLogin"
+                       Disabled="@_isLoading">
+                @if (_isLoading)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                    <MudText Class="ms-2">Logging In...</MudText>
+                }
+                else
+                {
+                    <MudText>LOGIN</MudText>
+                }
+            </MudButton>
+        </MudCardActions>
+    </MudCard>
+
+</MudContainer>
+
+@code {
+    // 1. Model: This matches the 'LoginRequest' your AuthController expects
+    private LoginRequest _loginModel = new();
+    
+    // 2. UI State variables
+    private bool _isLoading = false;
+    private bool _success;
+    private MudForm _form;
+
+    // Password Visibility Logic
+    private bool _passwordVisibility;
+    private InputType _passwordInputType = InputType.Password;
+    private string _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
+
+    private void TogglePasswordVisibility()
+    {
+        if (_passwordVisibility)
+        {
+            _passwordVisibility = false;
+            _passwordInputIcon = Icons.Material.Filled.VisibilityOff;
+            _passwordInputType = InputType.Password;
+        }
+        else
+        {
+            _passwordVisibility = true;
+            _passwordInputIcon = Icons.Material.Filled.Visibility;
+            _passwordInputType = InputType.Text;
+        }
+    }
+
+    // 3. The Login Logic
+    private async Task SubmitLogin()
+    {
+        await _form.Validate();
+        if (!_form.IsValid) return;
+
+        _isLoading = true;
+
+        try
+        {
+            // Call the Service -> Calls API -> Returns Token
+            var response = await AuthService.Login(_loginModel);
+
+            if (response.IsSuccess)
+            {
+                Snackbar.Add("Login Successful!", Severity.Success);
+                
+                // Notify Auth State
+                ((CustomAuthenticationStateProvider)AuthStateProvider).NotifyUserAuthentication(response.Token);
+                
+                Nav.NavigateTo(response.UserRole.Equals("Admin", StringComparison.OrdinalIgnoreCase) ? "/admin/hotels" : "/");
+            }
+            else
+            {
+                // Show the error message from the API or a default one
+                Snackbar.Add(response.Message ?? "Login failed. Check your credentials.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Connection failed. Is the API running?", Severity.Error);
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}

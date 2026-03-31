@@ -1,0 +1,49 @@
+﻿@using MyHotelApp.Shared.DTOs
+@using MudBlazor
+
+<MudCard Class="h-100 hover-elevation">
+    @* Image Section *@
+    <MudCardMedia Image="https://placehold.co/600x400" Height="200" />
+
+    <MudCardContent>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <MudText Typo="Typo.h6">@Hotel.Name</MudText>
+            <MudChip T="string" Color="Color.Success" Size="Size.Small">Available</MudChip>
+        </div>
+
+        <MudText Typo="Typo.body2" Class="mb-2">
+            <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" Class="me-1"/>
+            @Hotel.Address
+        </MudText>
+
+        @* Rating *@
+        <MudRating ReadOnly="true" SelectedValue="@Hotel.StarRating" Size="Size.Small" />
+        
+        
+        @*TODO*@
+        @* Price Placeholder (We'll make this real later) *@
+        <MudText Typo="Typo.h6" Color="Color.Primary" Class="mt-3">
+            $199 <span style="font-size: 0.7em; color: gray;">/ night</span>
+        </MudText>
+    </MudCardContent>
+
+    <MudCardActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">
+            Book Now
+        </MudButton>
+    </MudCardActions>
+</MudCard>
+
+<style>
+    .hover-elevation:hover {
+        transform: translateY(-5px);
+        box-shadow: 0px 10px 20px rgba(0,0,0,0.15);
+        transition: all 0.3s ease-in-out;
+    }
+</style>
+
+@code {
+    // This is the magic part. It allows us to pass data INTO the component.
+    [Parameter] 
+    public HotelDto Hotel { get; set; } = new();
+}

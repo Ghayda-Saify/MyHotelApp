@@ -1,16 +1,77 @@
 ﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu/>
-    </div>
+@using MyHotelApp.Client.Services
+@inject AuthenticationStateProvider AuthStateProvider
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+    <!-- MudBlazor Providers -->
+    <MudThemeProvider />
+    <MudDialogProvider />
+    <MudSnackbarProvider />
+    <MudPopoverProvider />
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+    <MudLayout>
+        <MudAppBar Elevation="1" Fixed="true" Style="background: white;">
+            @if (IsAdminPage)
+            {
+                <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+            }
+            <MudLink Href="/" Underline="Underline.None">
+                <MudText Typo="Typo.h5" Color="Color.Primary" Class="ml-3 fw-bold">MyHotelApp</MudText>
+            </MudLink>
+            
+            <MudSpacer />
+            
+            <AuthorizeView>
+                <Authorized Context="authContext">
+                    <div class="d-none d-md-flex mr-4">
+                        <MudButton Href="/" Variant="Variant.Text" Color="Color.Primary" Class="mx-1">Home</MudButton>
+                        <MudButton Href="/search" Variant="Variant.Text" Color="Color.Primary" Class="mx-1">Search</MudButton>
+                        <MudButton Href="/my-bookings" Variant="Variant.Text" Color="Color.Primary" Class="mx-1">My Bookings</MudButton>
+                        <MudButton Href="/checkout" Variant="Variant.Text" Color="Color.Primary" Class="mx-1">Checkout</MudButton>
+                    </div>
+
+                    <MudText Typo="Typo.body2" Class="mr-3">Hello, @authContext.User.Identity?.Name</MudText>
+                    <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="Logout">Logout</MudButton>
+                </Authorized>
+                <NotAuthorized>
+                    <MudButton Href="/login" Variant="Variant.Filled" Color="Color.Primary">Login</MudButton>
+                </NotAuthorized>
+            </AuthorizeView>
+        </MudAppBar>
+
+        @if (IsAdminPage)
+        {
+            <MudDrawer @bind-Open="_drawerOpen" Elevation="2" ClipMode="DrawerClipMode.Always">
+                <NavMenu />
+            </MudDrawer>
+        }
+
+        <MudMainContent Class="pt-16">
+            <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+                @Body
+            </MudContainer>
+        </MudMainContent>
+    </MudLayout>
+
+@code {
+    private bool _drawerOpen = true;
+
+    private bool IsAdminPage => Nav.Uri.ToLower().Contains("/admin");
+
+    protected override void OnInitialized()
+    {
+        Nav.LocationChanged += (s, e) => StateHasChanged();
+    }
+
+    private void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    private async Task Logout()
+    {
+        await LocalStorage.RemoveItemAsync("authToken");
+        ((CustomAuthenticationStateProvider)AuthStateProvider).NotifyUserLogout();
+        Nav.NavigateTo("/login", forceLoad: true);
+    }
+}

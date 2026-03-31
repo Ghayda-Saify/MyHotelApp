@@ -1,7 +1,163 @@
 ﻿@page "/"
+@using MyHotelApp.Shared.DTOs.Home
+@inject HttpClient Http
+@inject NavigationManager Nav
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Home - MyHotelApp</PageTitle>
 
-<h1>Hello, world!</h1>
+@* --- HERO SECTION --- *@
+<div class="hero-container d-flex flex-column align-items-center justify-content-center">
+    <MudText Typo="Typo.h3" Class="mb-2 fw-bold" Align="Align.Center">Find Your Next Stay</MudText>
+    <MudText Typo="Typo.subtitle1" Class="mb-5" Align="Align.Center">Search deals on hotels, homes, and much more...</MudText>
 
-Welcome to your new app.
+    @* Search Box *@
+    <MudPaper Elevation="4" Class="p-4 rounded d-flex flex-wrap gap-3 align-items-center justify-content-center" Style="background-color: rgba(255,255,255,0.95); max-width: 900px; width: 100%;">
+        
+        @* 1. Destination *@
+        <MudTextField @bind-Value="searchQuery"
+                      Label="Where are you going?"
+                      Placeholder="City or Hotel"
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      Variant="Variant.Outlined"
+                      Margin="Margin.Dense"
+                      Style="min-width: 200px;" />
+
+        @* 2. Dates *@
+        <MudDateRangePicker @bind-DateRange="dateRange"
+                            Label="Check-in - Check-out"
+                            Variant="Variant.Outlined"
+                            Margin="Margin.Dense"
+                            Style="min-width: 250px;" />
+
+        @* 3. Guests (Requirement) *@
+        <MudNumericField @bind-Value="adults"
+                         Label="Adults"
+                         Variant="Variant.Outlined"
+                         Min="1" Max="10"
+                         Margin="Margin.Dense"
+                         Style="width: 100px;" />
+
+        @* 4. Search Button *@
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   Size="Size.Large"
+                   OnClick="SearchHotels"
+                   StartIcon="@Icons.Material.Filled.Search"
+                   Style="height: 40px;">
+            Search
+        </MudButton>
+    </MudPaper>
+</div>
+
+@if (isLoading)
+{
+    <div class="d-flex justify-content-center my-5">
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    </div>
+}
+else if (homeData != null)
+{
+    @* --- FEATURED DEALS --- *@
+    <MudText Typo="Typo.h5" Class="mb-3 fw-bold mt-5">🔥 Featured Deals</MudText>
+    
+    <div class="scrolling-wrapper">
+        @foreach (var hotel in homeData.FeaturedDeals)
+        {
+            <div class="hotel-card">
+                <MudCard Elevation="3" @onclick="() => GoToHotel(hotel.HotelId)">
+                    <MudCardMedia Image="@hotel.ImageUrl" Height="160" />
+                    <MudCardContent>
+                        @if(hotel.DiscountPercentage > 0)
+                        {
+                            <MudChip T="string" Color="Color.Error" Size="Size.Small" Class="mb-2">
+                                -@hotel.DiscountPercentage% OFF
+                            </MudChip>
+                        }
+                        <MudText Typo="Typo.h6" Class="text-truncate">@hotel.HotelName</MudText>
+                        <MudText Typo="Typo.body2" Class="text-muted">
+                            <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small"/> @hotel.CityName
+                        </MudText>
+                        <div class="d-flex justify-content-between align-items-end mt-2">
+                            <div>
+                                <MudRating SelectedValue="@hotel.StarRating" ReadOnly="true" Size="Size.Small" />
+                            </div>
+                            <div class="text-end">
+                                @if(hotel.OriginalPrice > hotel.DiscountedPrice)
+                                {
+                                    <div class="original-price">$@hotel.OriginalPrice.ToString("0")</div>
+                                }
+                                <div class="discount-price">$@hotel.DiscountedPrice.ToString("0")</div>
+                            </div>
+                        </div>
+                    </MudCardContent>
+                </MudCard>
+            </div>
+        }
+    </div>
+
+    @* --- TRENDING DESTINATIONS --- *@
+    <MudText Typo="Typo.h5" Class="mb-3 fw-bold mt-5">🌍 Trending Destinations</MudText>
+    
+    <div class="scrolling-wrapper">
+        @foreach (var city in homeData.TrendingDestinations)
+        {
+            <div class="hotel-card" style="width: 220px;">
+                <MudCard Elevation="2" @onclick="() => SearchByCity(city.CityName)">
+                    <MudCardMedia Image="@city.ImageUrl" Height="140" />
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6">@city.CityName</MudText>
+                        <MudText Typo="Typo.caption">@city.CountryName</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private HomePageDto? homeData;
+    private bool isLoading = true;
+
+    // Search Bindings
+    private string searchQuery = "";
+    private DateRange dateRange = new DateRange(DateTime.Today, DateTime.Today.AddDays(1));
+    private int adults = 2;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Use the specific endpoint for Home Page data (Server-side optimization)
+            homeData = await Http.GetFromJsonAsync<HomePageDto>("api/Home");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void SearchHotels()
+    {
+        // Format dates safely
+        var checkIn = dateRange.Start?.ToString("yyyy-MM-dd") ?? DateTime.Today.ToString("yyyy-MM-dd");
+        var checkOut = dateRange.End?.ToString("yyyy-MM-dd") ?? DateTime.Today.AddDays(1).ToString("yyyy-MM-dd");
+
+        // Navigate to the Search Page with Filters
+        Nav.NavigateTo($"/search?q={searchQuery}&checkIn={checkIn}&checkOut={checkOut}&adults={adults}");
+    }
+
+    private void SearchByCity(string city)
+    {
+        Nav.NavigateTo($"/search?q={city}");
+    }
+
+    private void GoToHotel(Guid hotelId)
+    {
+        Nav.NavigateTo($"/hotel/{hotelId}");
+    }
+}
